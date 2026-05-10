@@ -1,0 +1,41 @@
+#BEFORE RUNNING 
+#Must Install BLAST+ for command line
+#Set Up the folder structure as Followed:
+
+#Bioinformatics_Final - | - blast+
+                        | - database
+                        | - queries
+                        | - results
+              
+
+#Making DataBase (Combining all fasta into master database for test)
+cd /c/Users/evilt/OneDrive/Documents/BINF_FINAL/project/database
+cat hemoglobin.fasta actin.fasta tubulin.fasta kinase.fasta > master_db.fasta
+makeblastdb -in master_db.fasta -dbtype prot -out protein_db
+
+#Creating Queries (Combining Fasta files from 3 seperate animals)
+cat human.fasta mouse.fasta fish.fasta > queries.fasta
+
+#Testing Blast
+blastp -query queries/queries.fasta -db database/protein_db -out results/default.txt
+less results/default.txt
+
+#Tests Involing Unique parameters (E-value, Word Size, Scoring Matrix)
+blastp -query queries/queries.fasta -db database/protein_db -evalue 10 -outfmt "6 qseqid sseqid evalue bitscore pident length" -out results/evalue_10.tsv
+blastp -query queries/queries.fasta -db database/protein_db -evalue 1e-5 -outfmt "6 qseqid sseqid evalue bitscore pident length" -out results/evalue_1e-5.tsv
+blastp -query queries/queries.fasta -db database/protein_db -evalue 1e-10 -outfmt "6 qseqid sseqid evalue bitscore pident length" -out results/evalue_1e-10.tsv
+
+blastp -query queries/queries.fasta -db database/protein_db -matrix BLOSUM45 -outfmt "6 qseqid sseqid evalue bitscore pident length" -out results/blosum45.tsv
+blastp -query queries/queries.fasta -db database/protein_db -matrix BLOSUM80 -outfmt "6 qseqid sseqid evalue bitscore pident length" -out results/blosum80.tsv
+blastp -query queries/queries.fasta -db database/protein_db -matrix PAM30 -outfmt "6 qseqid sseqid evalue bitscore pident length" -out results/PAM30.tsv
+
+blastp -query queries/queries.fasta -db database/protein_db -word_size 2 -outfmt 6 -out results/wordsize2.tsv
+blastp -query queries/queries.fasta -db database/protein_db -word_size 5 -outfmt 6 -out results/wordsize5.tsv
+blastp -query queries/queries.fasta -db database/protein_db -word_size 7 -outfmt 6 -out results/wordsize7.tsv
+
+#Creating Anwser Key
+grep "^>" database/hemoglobin.fasta | sed 's/>//' | cut -d' ' -f1 | awk '{print $1"\themoglobin"}' > answer_key.tsv
+grep "^>" database/actin.fasta | sed 's/>//' | cut -d' ' -f1 | awk '{print $1"\tactin"}' >> answer_key.tsv
+grep "^>" database/tublin.fasta | sed 's/>//' | cut -d' ' -f1 | awk '{print $1"\ttubulin"}' >> answer_key.tsv
+grep "^>" database/kinase.fasta | sed 's/>//' | cut -d' ' -f1 | awk '{print $1"\tkinase"}' >> answer_key.tsv
+sed -i '1isubject_id\tfamily' answer_key.tsv
